@@ -6534,13 +6534,14 @@ describe("Universal Counts: Change and Nav", () => {
     assert.deepEqual(editor.getCursor(), { line: 1, col: 0 });
   });
 
-  it("j moves by logical lines across wrapped content", () => {
+  it("j moves by screen lines across wrapped content (local Vim remap)", () => {
     const wrappedLine = "x".repeat(200);
     const { editor } = createMultiLineEditor(`top\n${wrappedLine}\nbottom`);
+    editor.render(81);
 
     sendKeys(editor, ["j", "j"]);
 
-    assert.deepEqual(editor.getCursor(), { line: 2, col: 0 });
+    assert.deepEqual(editor.getCursor(), { line: 1, col: 80 });
   });
 });
 

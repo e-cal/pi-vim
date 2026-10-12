@@ -2319,6 +2319,12 @@ export class ModalEditor extends CustomEditor {
       this.pendingGCount = "";
 
       if (!hadGCount) {
+        if (data === "j" || data === "k") {
+          const count = this.takeTotalCount(1);
+          this.moveCursorByScreenLines(data === "j" ? count : -count);
+          return;
+        }
+
         if (data === "g") {
           const count = this.takeTotalCount(1);
           this.moveCursorToLineStart(count - 1);
@@ -2439,7 +2445,8 @@ export class ModalEditor extends CustomEditor {
           this.moveCursorBy(clamped);
         } else {
           const delta = data === "j" ? clamped : -clamped;
-          this.moveCursorVertically(delta);
+          if (this.mode === "normal") this.moveCursorByScreenLines(delta);
+          else this.moveCursorVertically(delta);
         }
         return;
       }
@@ -2699,10 +2706,12 @@ export class ModalEditor extends CustomEditor {
         this.cutCharsBeforeCursor();
         break;
       case "j":
-        this.moveCursorVertically(1);
+        if (this.mode === "normal") this.moveCursorByScreenLines(1);
+        else this.moveCursorVertically(1);
         break;
       case "k":
-        this.moveCursorVertically(-1);
+        if (this.mode === "normal") this.moveCursorByScreenLines(-1);
+        else this.moveCursorVertically(-1);
         break;
       default:
         if (seq) super.handleInput(seq);
@@ -2789,6 +2798,26 @@ export class ModalEditor extends CustomEditor {
     for (let i = 0; i < Math.abs(delta); i++) {
       super.handleInput(seq);
     }
+  }
+
+  private moveCursorByScreenLines(delta: number): void {
+    // Use Pi's wrapping geometry without arrows' prompt-history/EOL behavior.
+    const editor = this as unknown as {
+      lastWidth: number;
+      lastAction: string | null;
+      buildVisualLineMap(width: number): unknown[];
+      findCurrentVisualLine(lines: unknown[]): number;
+      moveToVisualLine(lines: unknown[], current: number, target: number): void;
+      tui: { requestRender(): void };
+    };
+    const lines = editor.buildVisualLineMap(editor.lastWidth);
+    const current = editor.findCurrentVisualLine(lines);
+    const steps = Math.sign(delta) * Math.min(Math.abs(delta), MAX_COUNT);
+    const target = Math.max(0, Math.min(current + steps, lines.length - 1));
+    if (target === current) return;
+    editor.lastAction = null;
+    editor.moveToVisualLine(lines, current, target);
+    editor.tui.requestRender();
   }
 
   private moveCursorVertically(delta: number): void {

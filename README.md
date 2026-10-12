@@ -145,7 +145,8 @@ Most navigation keys accept a `{count}` prefix (max: `9999`); `%` intentionally 
 
 | key | action |
 |---|---|
-| `h` / `l` / `j` / `k`; `{count}h/l/j/k` | Move left/right/down/up; line moves clamp to the buffer |
+| `h` / `l`; `{count}h/l` | Move left/right |
+| `j` / `k`, `gj` / `gk`; `{count}j/k`, `{count}gj/gk` | Move down/up through wrapped screen lines; clamp to the buffer |
 | `0` / `^` / `_` / `$` | Line start / first non-whitespace / counted first non-whitespace / line end |
 | `gg` / `G`; `{count}gg` / `{count}G` | Buffer start/end or absolute 1-indexed line |
 | `gM`; `{count}gM` | Halfway the text of the line; a count of `1`-`100` moves to that percentage of it (higher counts mean halfway, per nvim); text is measured in graphemes, not screen cells |
@@ -153,6 +154,8 @@ Most navigation keys accept a `{count}` prefix (max: `9999`); `%` intentionally 
 | `W` / `B` / `E`; `{count}W/B/E` | whitespace-delimited `WORD` motions |
 | `{` / `}`; `{count}{` / `{count}}` | Previous/next paragraph start |
 | `%` | Jump to the matching `()`, `[]`, or `{}` partner |
+
+This local fork intentionally maps normal-mode `j`/`k` to screen-line movement (`gj`/`gk` in Vim), using Pi's current wrapping layout. Counts also move screen lines. Insert mode, visual-mode `j`/`k`, and operator motions such as `dj`/`yk` remain unchanged and logical-line based. Explicit `gj`/`gk` also work in visual mode; operator forms such as `dgj` are unsupported.
 
 `word` splits punctuation from keyword chars; `WORD` treats any non-whitespace run as one token (`foo-bar`, `path/to`). Paragraph starts are non-blank lines at BOF or after blank lines (`^\s*$`). `{` / `}` are navigation-only; brace operator forms (`d{`, `c}`, `y{`, …) are out of scope.
 
