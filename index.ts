@@ -1287,7 +1287,7 @@ export class ModalEditor extends CustomEditor {
     if (this.mode === "insert" && this.pendingExCommand === null) {
       if (matchesKey(data, "ctrl+enter") || matchesKey(data, "super+enter")) {
         data = "\r";
-      } else if (matchesKey(data, "enter")) {
+      } else if (matchesKey(data, "enter") && !this.isShowingAutocomplete()) {
         data = "\n";
       }
     }
