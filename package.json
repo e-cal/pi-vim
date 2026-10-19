@@ -37,7 +37,7 @@
   },
   "pi": {
     "extensions": [
-      "./vim.ts"
+      "./index.ts"
     ]
   },
   "devDependencies": {

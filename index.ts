@@ -1284,6 +1284,13 @@ export class ModalEditor extends CustomEditor {
   }
 
   handleInput(data: string): void {
+    if (this.mode === "insert" && this.pendingExCommand === null) {
+      if (matchesKey(data, "ctrl+enter") || matchesKey(data, "super+enter")) {
+        data = "\r";
+      } else if (matchesKey(data, "enter")) {
+        data = "\n";
+      }
+    }
     try {
       this.handleInputCore(data);
     } finally {
@@ -4127,7 +4134,7 @@ export class ModalEditor extends CustomEditor {
   render(width: number): string[] {
     const lines = super.render(width);
     this.syncCursorShapeForRender(lines);
-    if (lines.length === 0) return lines;
+    if (lines.length === 0 || this.pendingExCommand === null) return lines;
 
     const rawLabel = fitModeLabel(this.getModeLabel(), width);
     const colorize = this.getModeLabelColorizer();
@@ -4243,7 +4250,12 @@ export default function (pi: ExtensionAPI) {
       editor.setClipboardMirrorPolicy(clipboardMirrorPolicy.policy);
       editor.setQuitFn(() => ctx.shutdown());
       editor.setNotifyFn((message) => ctx.ui.notify(message, "warning"));
-      editor.setModeChangeFn(modeChangeHandler);
+      editor.setModeChangeFn((mode, prevMode) => {
+        modeChangeHandler(mode, prevMode);
+        pi.events.emit("dotfiles:vim-mode", { mode });
+        tui.requestRender();
+      });
+      pi.events.emit("dotfiles:vim-mode", { mode: editor.getMode() });
       editor.setExCommandSettings(exCommand.settings);
       // Resolved at submit time so commands registered or reloaded mid-session
       // are dispatchable without restarting.
